@@ -68,7 +68,6 @@ namespace SkillEditor
             _trackDataList.Add(newTrackData);
 
             _mainLeft.UpdateTrackDataList(_trackDataList);
-            _mainRight.UpdateTrackDataList(_trackDataList);
         }
     }
 }

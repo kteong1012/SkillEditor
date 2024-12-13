@@ -5,12 +5,13 @@ namespace SkillEditor
 {
     internal static class TimelineAxisManager
     {
-        private const float BASIC_AXIS_UNIT_INTERVAL = 10;
-        private const float MIN_SCALE = 0.5f;
-        private const float MAX_SCALE = 2f;
+        public const float BASIC_AXIS_UNIT_INTERVAL = 10;
+        public const float MIN_SCALE = 0.5f;
+        public const float MAX_SCALE = 2f;
         public const int LONGER_FRAME_COUNT = 5;
 
         private static float _scale = 1f;
+        public static int MaxFrameCount { get; private set; } = 100;
 
         public static float Scale
         {
@@ -36,6 +37,11 @@ namespace SkillEditor
         public static float FrameToPosition(int frame)
         {
             return frame * BASIC_AXIS_UNIT_INTERVAL * _scale;
+        }
+        
+        public static void UpdateMaxFrameCount(float viewWidth)
+        {
+            MaxFrameCount = (int)(viewWidth / FrameToPosition(1));
         }
     }
 }

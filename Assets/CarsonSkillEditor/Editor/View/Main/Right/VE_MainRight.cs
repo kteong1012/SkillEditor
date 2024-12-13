@@ -9,89 +9,69 @@ namespace SkillEditor
     public class VE_MainRight : VisualElement
     {
         private readonly ListView _trackDetailListView;
-        private List<TrackData> _trackDataList = new();
+
+        // 单独渲染轴
+        private List<IMGUIDrawer> _imguiDrawers;
 
         public VE_MainRight()
         {
-            // IMGUIContainer, 绘制一条贯穿试图上下的线，表示时间轴上的游标
-            var cursorLine = new IMGUIContainer(OnDrawCursorLine);
-            cursorLine.style.height = 20f;
-            cursorLine.style.width = 20f;
-            cursorLine.style.backgroundColor =  new StyleColor(Color.red);
-            var draggable = new TimelineDraggableManipulator();
-            cursorLine.AddManipulator(draggable);
-            Add(cursorLine);
-            // 让cursorLine在渲染时，不会被其他元素遮挡
-            cursorLine.BringToFront();
-            
-            // IMGUIContainer, 高度为30
-            var imguiContainer = new IMGUIContainer(OnDrawFrameAxis);
-            imguiContainer.style.height = 30;
+            InitializeIMGUIDrawers();
+            var imguiContainer = new IMGUIContainer(OnGUI);
             Add(imguiContainer);
 
-            _trackDetailListView = new ListView(_trackDataList, 100, MakeTrackDetailListCell, BindTrackDetailListCell);
-            Add(_trackDetailListView);
-
-            // 纵向充满父物体
-            style.flexGrow = 1;
-            style.flexDirection = FlexDirection.Column;
-            
-            // 添加滚轮事件
-            this.AddManipulator(new TimelineScrollWheelManipulator(imguiContainer));
+            // 撑满
+            imguiContainer.style.flexGrow = 1;
         }
 
-        private VisualElement MakeTrackDetailListCell()
+        public void InitializeIMGUIDrawers()
         {
-            return new VE_TrackDetailListCell();
-        }
-
-        private void BindTrackDetailListCell(VisualElement element, int index)
-        {
-            var cell = element as VE_TrackDetailListCell;
-            cell.BindItem(_trackDataList[index]);
-        }
-
-        public void UpdateTrackDataList(List<TrackData> trackDataList)
-        {
-            _trackDataList = trackDataList;
-            _trackDetailListView.itemsSource = trackDataList;
-            _trackDetailListView.Rebuild();
-        }
-
-        private void OnDrawFrameAxis()
-        {
-            var viewWidth = this.layout.width;
-            var frameCount = (int)(viewWidth / TimelineAxisManager.FrameToPosition(1));
-
-            Handles.BeginGUI();
-            for (var i = 0; i < frameCount; i++)
+            _imguiDrawers = new List<IMGUIDrawer>
             {
-                var frame = i + 1;
-                var position = TimelineAxisManager.FrameToPosition(frame);
-                if (frame % TimelineAxisManager.LONGER_FRAME_COUNT == 0)
+                new IM_Axis()
+            };
+        }
+
+        // 滚动位置
+        private Vector2 _scrollPosition;
+        private readonly TimelineScrollWheelManipulator _scrollManipulator;
+
+        private void OnGUI()
+        {
+            var evt = Event.current;
+            if (evt.type == EventType.ScrollWheel)
+            {
+                if (_scrollManipulator != null)
                 {
-                    Handles.color = Color.white;
-                    Handles.DrawLine(new Vector3(position, 10), new Vector3(position, 30));
-                    Handles.Label(new Vector3(position - 5f, 6), frame.ToString());
-                }
-                else
-                {
-                    Handles.color = Color.white;
-                    Handles.DrawLine(new Vector3(position, 15), new Vector3(position, 30));
+                    evt.Use();
+                    return;
                 }
             }
 
-            Handles.EndGUI();
-        }
-        
-        private void OnDrawCursorLine()
-        {
-            var viewHeight = this.layout.height;
-            var cursorPosition = 10f;
-            Handles.BeginGUI();
-            Handles.color = Color.red;
-            Handles.DrawLine(new Vector3(cursorPosition, 0), new Vector3(cursorPosition, viewHeight));
-            Handles.EndGUI();
+            // 横竖方向都可以滚动
+            var scrollRectWidth = TimelineAxisManager.FrameToPosition(TimelineAxisManager.MaxFrameCount);
+            var scrollRectHeight = 1000; // todo
+
+            // 获取MainRight自身的宽高
+            var viewRectWidth = this.layout.width;
+            var viewRectHeight = this.layout.height;
+
+            var viewRect = new Rect(0, 0, viewRectWidth, viewRectHeight);
+            var scrollRect = new Rect(0, 0, scrollRectWidth, scrollRectHeight);
+
+
+            _scrollPosition = GUI.BeginScrollView(viewRect, _scrollPosition, scrollRect, false, false);
+
+            var handled = false;
+            foreach (var imguiDrawer in _imguiDrawers)
+            {
+                imguiDrawer.OnGUI();
+                if (!handled)
+                {
+                    handled = imguiDrawer.HandleEvent(viewRect);
+                }
+            }
+
+            GUI.EndScrollView();
         }
     }
 }

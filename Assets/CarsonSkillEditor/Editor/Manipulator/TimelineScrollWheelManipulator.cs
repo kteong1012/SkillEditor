@@ -5,12 +5,10 @@ namespace SkillEditor
 {
     public class TimelineScrollWheelManipulator : Manipulator
     {
-        private VisualElement _target;
         private readonly float _scrollSpeed;
-        
-        public TimelineScrollWheelManipulator(VisualElement target, float scrollSpeed = 1f)
+
+        public TimelineScrollWheelManipulator(float scrollSpeed = 1f)
         {
-            _target = target;
             _scrollSpeed = scrollSpeed;
         }
 
@@ -28,11 +26,17 @@ namespace SkillEditor
         {
             var deltaY = evt.delta.y;
             var scrollDelta = deltaY * _scrollSpeed;
-            
+
             TimelineAxisManager.Scale += scrollDelta * 0.01f;
-            
+
+            if (TimelineAxisManager.MaxFrameCount == 0 || deltaY < 0)
+            {
+                var viewWidth = target.layout.width;
+                TimelineAxisManager.UpdateMaxFrameCount(viewWidth);
+            }
+
             // 立马触发重绘
-            _target.MarkDirtyRepaint();
+            target.MarkDirtyRepaint();
         }
     }
 }
