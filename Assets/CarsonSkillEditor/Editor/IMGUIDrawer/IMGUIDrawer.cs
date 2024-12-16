@@ -6,13 +6,14 @@ namespace SkillEditor
     public abstract class IMGUIDrawer
     {
         private static int DYNAMIC_GENERATE_ID;
-        public int Id { get; }
+        protected int Id { get; }
 
         protected IMGUIDrawer()
         {
             Id = DYNAMIC_GENERATE_ID++;
         }
-        public abstract void OnGUI();
+
+        public abstract void OnGUI(Rect rect);
 
         public bool HandleEvent(Rect rect)
         {
@@ -35,11 +36,12 @@ namespace SkillEditor
                     {
                         isHandled = MouseDoubleClick(evt, rect);
                     }
-                    
+
                     if (isHandled)
                     {
                         GUIUtility.hotControl = Id;
                     }
+
                     break;
                 case EventType.MouseUp:
                     if (GUIUtility.hotControl == Id)
@@ -48,6 +50,7 @@ namespace SkillEditor
                         GUIUtility.hotControl = 0;
                         evt.Use();
                     }
+
                     break;
                 case EventType.MouseDrag:
                     if (GUIUtility.hotControl == Id)
@@ -55,6 +58,7 @@ namespace SkillEditor
                         isHandled = MouseDrag(evt, rect);
                         evt.Use();
                     }
+
                     break;
                 case EventType.ScrollWheel:
                     isHandled = ScrollWheel(evt, rect);

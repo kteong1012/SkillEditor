@@ -15,19 +15,28 @@ namespace SkillEditor
 
         public VE_MainRight()
         {
-            InitializeIMGUIDrawers();
             var imguiContainer = new IMGUIContainer(OnGUI);
             Add(imguiContainer);
 
             // 撑满
             imguiContainer.style.flexGrow = 1;
+
+            InitializeIMGUIDrawers();
         }
 
         public void InitializeIMGUIDrawers()
         {
             _imguiDrawers = new List<IMGUIDrawer>
             {
-                new IM_Axis()
+                new AxisDrawer(new Vector2(0, 0)),
+                new AnimationClipDrawer()
+                {
+                    ItemRect = new Rect(100, 100, 100, 20)
+                },
+                new AnimationClipDrawer()
+                {
+                    ItemRect = new Rect(100, 200, 100, 20)
+                }
             };
         }
 
@@ -64,11 +73,11 @@ namespace SkillEditor
             var handled = false;
             foreach (var imguiDrawer in _imguiDrawers)
             {
-                imguiDrawer.OnGUI();
                 if (!handled)
                 {
                     handled = imguiDrawer.HandleEvent(viewRect);
                 }
+                imguiDrawer.OnGUI(viewRect);
             }
 
             GUI.EndScrollView();

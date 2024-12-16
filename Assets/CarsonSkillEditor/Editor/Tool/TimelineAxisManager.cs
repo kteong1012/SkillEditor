@@ -1,5 +1,6 @@
 using System;
 using Unity.Plastic.Antlr3.Runtime.Misc;
+using UnityEngine;
 
 namespace SkillEditor
 {
@@ -11,7 +12,7 @@ namespace SkillEditor
         public const int LONGER_FRAME_COUNT = 5;
 
         private static float _scale = 1f;
-        public static int MaxFrameCount { get; private set; } = 100;
+        public static int MaxFrameCount { get; private set; } = 0;
 
         public static float Scale
         {
@@ -38,7 +39,19 @@ namespace SkillEditor
         {
             return frame * BASIC_AXIS_UNIT_INTERVAL * _scale;
         }
+
+        public static int GetNearestFrame(float position)
+        {
+            var frame = Mathf.RoundToInt(position / (BASIC_AXIS_UNIT_INTERVAL * _scale));
+            return frame;
+        }
         
+        public static float ClampToNearestFramePosition(float position)
+        {
+            var frame = GetNearestFrame(position);
+            return FrameToPosition(frame);
+        }
+
         public static void UpdateMaxFrameCount(float viewWidth)
         {
             MaxFrameCount = (int)(viewWidth / FrameToPosition(1));
